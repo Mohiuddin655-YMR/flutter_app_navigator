@@ -1,4 +1,4 @@
-name: app_navigator
+name: flutter_app_navigator
 description: This is a navigator, route and screen movement library.
 version: 0.0.1
 homepage: https://github.com/P-YMR/flutter_app_navigator.git
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  go_router: ^9.0.1
+  go_router: ^9.0.3
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,10 @@
+library app_navigator;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+
+part 'app_navigator_extension.dart';
 
 class AppNavigator {
   final BuildContext context;

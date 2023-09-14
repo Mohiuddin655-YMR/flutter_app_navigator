@@ -172,16 +172,31 @@ class AppNavigator {
 
 class AppRoute<T> extends PageRouteBuilder<T> {
   final String? name;
-  final int? animationTime;
+  final int animationTime;
+  final int? animationReserveTime;
   final AnimType animationType;
   final Map<String, dynamic>? arguments;
+  final Curve curve;
   final Widget child;
 
   AppRoute({
+    super.allowSnapshotting,
+    super.barrierColor,
+    super.barrierDismissible,
+    super.barrierLabel,
+    super.fullscreenDialog,
+    super.maintainState,
+    super.opaque,
+    super.settings,
+    super.transitionsBuilder,
+    super.transitionDuration,
+    super.reverseTransitionDuration,
     this.name,
-    this.animationTime,
+    this.animationTime = 300,
+    this.animationReserveTime,
     this.arguments,
     this.animationType = AnimType.slideRight,
+    this.curve = Curves.decelerate,
     required this.child,
   }) : super(pageBuilder: (context, a1, a2) => child);
 
@@ -194,18 +209,16 @@ class AppRoute<T> extends PageRouteBuilder<T> {
   }
 
   @override
-  Duration get transitionDuration => animationTime != null
-      ? Duration(milliseconds: animationTime ?? 300)
-      : super.transitionDuration;
-
-  @override
   Widget buildTransitions(
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    return Anim(animation, secondaryAnimation).select(child, animationType);
+    return Anim(
+      CurvedAnimation(parent: animation, curve: curve),
+      secondaryAnimation,
+    ).select(child, animationType);
   }
 }
 
@@ -221,41 +234,81 @@ class Anim {
   Widget select(Widget view, AnimType type) {
     switch (type) {
       case AnimType.none:
-        return slideLeft(view);
+        return _slideLeft(view);
       case AnimType.card:
-        return slideLeft(view);
+        return _slideLeft(view);
       case AnimType.diagonal:
-        return slideLeft(view);
-      case AnimType.fade:
-        return fade(view);
+        return _slideLeft(view);
+      case AnimType.fadeIn:
+        return _fadeIn(view);
       case AnimType.inAndOut:
-        return slideLeft(view);
+        return _slideLeft(view);
+      case AnimType.rotation:
+        return _rotation(view);
       case AnimType.shrink:
-        return slideLeft(view);
-      case AnimType.spin:
-        return slideLeft(view);
+        return _slideLeft(view);
       case AnimType.split:
-        return slideLeft(view);
+        return _slideLeft(view);
       case AnimType.slideLeft:
-        return slideLeft(view);
+        return _slideLeft(view);
       case AnimType.slideRight:
-        return slideRight(view);
+        return _slideRight(view);
       case AnimType.slideDown:
-        return slideRight(view);
+        return _slideDown(view);
       case AnimType.slideUp:
-        return slideRight(view);
+        return _slideUp(view);
+      case AnimType.slideLeftWithFade:
+        return _slideLeftWithFade(view);
+      case AnimType.slideRightWithFade:
+        return _slideRightWithFade(view);
+      case AnimType.slideDownWithFade:
+        return _slideDownWithFade(view);
+      case AnimType.slideUpWithFade:
+        return _slideUpWithFade(view);
       case AnimType.swipeLeft:
-        return slideRight(view);
+        return _slideRight(view);
       case AnimType.swipeRight:
-        return slideRight(view);
+        return _slideRight(view);
       case AnimType.windmill:
-        return slideRight(view);
+        return _slideRight(view);
       case AnimType.zoom:
-        return slideRight(view);
+        return _zoom(view);
+      case AnimType.zoomWithFade:
+        return _zoomWithFade(view);
     }
   }
 
-  Widget slideLeft(Widget view) {
+  Widget _fadeIn(Widget view) {
+    return FadeTransition(
+      opacity: Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(primary),
+      child: view,
+    );
+  }
+
+  Widget _slideUp(Widget view) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(0.0, 1.0),
+        end: Offset.zero,
+      ).animate(primary),
+      child: view,
+    );
+  }
+
+  Widget _slideDown(Widget view) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(0.0, -1.0),
+        end: Offset.zero,
+      ).animate(primary),
+      child: view,
+    );
+  }
+
+  Widget _slideLeft(Widget view) {
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(-1.0, 0.0),
@@ -265,7 +318,7 @@ class Anim {
     );
   }
 
-  Widget slideRight(Widget view) {
+  Widget _slideRight(Widget view) {
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(1.0, 0.0),
@@ -275,23 +328,79 @@ class Anim {
     );
   }
 
-  Widget slideRightWithFade(Widget view) {
+  Widget _slideUpWithFade(Widget view) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(0.0, 1.0),
+        end: Offset.zero,
+      ).animate(primary),
+      child: Opacity(opacity: primary.value, child: view),
+    );
+  }
+
+  Widget _slideDownWithFade(Widget view) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(0.0, -1.0),
+        end: Offset.zero,
+      ).animate(primary),
+      child: Opacity(opacity: primary.value, child: view),
+    );
+  }
+
+  Widget _slideLeftWithFade(Widget view) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(-1.0, 0.0),
+        end: Offset.zero,
+      ).animate(primary),
+      child: Opacity(opacity: primary.value, child: view),
+    );
+  }
+
+  Widget _slideRightWithFade(Widget view) {
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(1.0, 0.0),
         end: Offset.zero,
       ).animate(primary),
-      child: Opacity(
-        opacity: primary.value,
+      child: Opacity(opacity: primary.value, child: view),
+    );
+  }
+
+  Widget _rotation(Widget view) {
+    return RotationTransition(
+      turns: Tween<double>(
+        begin: 0.5,
+        end: 1.0,
+      ).animate(primary),
+      child: FadeTransition(
+        opacity: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(primary),
         child: view,
       ),
     );
   }
 
-  Widget fade(Widget view) {
-    return Opacity(
-      opacity: primary.value,
+  Widget _zoom(Widget view) {
+    return ScaleTransition(
+      scale: Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(primary),
       child: view,
+    );
+  }
+
+  Widget _zoomWithFade(Widget view) {
+    return ScaleTransition(
+      scale: Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(primary),
+      child: Opacity(opacity: primary.value, child: view),
     );
   }
 }
@@ -306,17 +415,22 @@ enum AnimType {
   none,
   card,
   diagonal,
-  fade,
+  fadeIn,
   inAndOut,
   shrink,
-  spin,
+  rotation,
   split,
   slideLeft,
   slideRight,
   slideDown,
   slideUp,
+  slideLeftWithFade,
+  slideRightWithFade,
+  slideDownWithFade,
+  slideUpWithFade,
   swipeLeft,
   swipeRight,
   windmill,
-  zoom;
+  zoom,
+  zoomWithFade;
 }

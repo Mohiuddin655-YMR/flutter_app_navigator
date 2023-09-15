@@ -1,14 +1,6 @@
 library app_navigator;
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:go_router/go_router.dart';
-
-extension AppNavigatorExtension on GoRouterState {
-  String getPath(String name) => pathParameters[name] ?? "";
-
-  String getQuery(String name) => uri.queryParameters[name] ?? "";
-}
+import 'package:flutter/material.dart';
 
 class AppNavigator {
   final BuildContext context;
@@ -17,64 +9,7 @@ class AppNavigator {
 
   factory AppNavigator.of(BuildContext context) => AppNavigator._(context);
 
-  void go(
-    String route, {
-    Object? extra,
-    String path = "",
-    Map<String, dynamic> queryParams = const <String, dynamic>{},
-  }) {
-    if (path.isNotEmpty || queryParams.isNotEmpty) {
-      if (kIsWeb) {
-        context.goNamed(
-          route,
-          extra: extra,
-          pathParameters: {"name": path},
-          queryParameters: queryParams,
-        );
-      } else {
-        context.pushNamed(
-          route,
-          extra: extra,
-          pathParameters: {"name": path},
-          queryParameters: queryParams,
-        );
-      }
-    } else {
-      if (kIsWeb) {
-        context.go(route, extra: extra);
-      } else {
-        context.push(route, extra: extra);
-      }
-    }
-  }
-
-  void goHome(
-    String route, {
-    String path = "",
-    Object? extra,
-    Map<String, dynamic> queryParams = const <String, dynamic>{},
-  }) {
-    if (path.isNotEmpty || queryParams.isNotEmpty) {
-      Router.neglect(context, () {
-        context.goNamed(
-          route,
-          extra: extra,
-          pathParameters: {"name": path},
-          queryParameters: queryParams,
-        );
-      });
-    } else {
-      Router.neglect(context, () {
-        context.go(route, extra: extra);
-      });
-    }
-  }
-
-  void goBack([Object? result]) {
-    context.pop(result);
-  }
-
-  Future<T?> push<T extends Object?, R extends Object?>(
+  Future<T?> go<T extends Object?, R extends Object?>(
     dynamic route, {
     String? name,
     Map<String, dynamic>? arguments,
@@ -98,7 +33,7 @@ class AppNavigator {
           AppRoute<T>(
             name: name,
             arguments: arguments,
-            child: route,
+            builder: (_) => route,
           ),
         );
       } else {
@@ -118,7 +53,7 @@ class AppNavigator {
             AppRoute<T>(
               name: name,
               arguments: arguments,
-              child: route,
+              builder: (_) => route,
             ),
             predicate ?? (route) => false);
       } else {
@@ -137,7 +72,7 @@ class AppNavigator {
           AppRoute<T>(
             name: name,
             arguments: arguments,
-            child: route,
+            builder: (_) => route,
           ),
         );
       } else {
@@ -146,42 +81,119 @@ class AppNavigator {
     }
   }
 
-  void pop([Object? result]) => Navigator.pop(context, result);
+  void back([Object? result]) => Navigator.pop(context, result);
 
   static Future<T?> load<T extends Object?, R extends Object?>(
     BuildContext context,
     dynamic route, {
+    bool allowSnapshotting = true,
+    int animationTime = 500,
+    int? animationReserveTime,
+    AnimType animationType = AnimType.slideLeft,
+    Map<String, dynamic> arguments = const {},
+    Color? barrierColor,
+    bool barrierDismissible = false,
+    String? barrierLabel,
+    Curve curve = Curves.decelerate,
+    bool fullscreenDialog = false,
     String? name,
-    Map<String, dynamic>? arguments,
     Flag flag = Flag.none,
+    bool maintainState = true,
+    bool opaque = true,
     RoutePredicate? predicate,
     R? result,
-    AnimType type = AnimType.slideLeft,
   }) {
-    return AppNavigator.of(context).push(
-      route,
-      name: name,
-      arguments: arguments,
-      flag: flag,
-      predicate: predicate,
-      result: result,
-      type: type,
-    );
+    if (route is String) {
+      arguments.putIfAbsent("__route_config__", () {
+        return {
+          "allowSnapshotting": allowSnapshotting,
+          "animationTime": animationTime,
+          "animationReserveTime": animationReserveTime,
+          "animationType": animationType,
+          "barrierColor": barrierColor,
+          "barrierDismissible": barrierDismissible,
+          "barrierLabel": barrierLabel,
+          "curve": curve,
+          "fullscreenDialog": fullscreenDialog,
+          "maintainState": maintainState,
+          "opaque": opaque,
+        };
+      });
+
+      if (flag == Flag.replacement) {
+        return Navigator.pushReplacementNamed(
+          context,
+          route,
+          result: result,
+          arguments: arguments,
+        );
+      } else if (flag == Flag.clear) {
+        return Navigator.pushNamedAndRemoveUntil(
+          context,
+          route,
+          predicate ?? (value) => false,
+          arguments: arguments,
+        );
+      } else {
+        return Navigator.pushNamed(
+          context,
+          route,
+          arguments: arguments,
+        );
+      }
+    } else if (route is Widget) {
+      AppRoute<T> mRoute = AppRoute<T>(
+        name: name,
+        allowSnapshotting: allowSnapshotting,
+        animationTime: animationTime,
+        animationReserveTime: animationReserveTime,
+        animationType: animationType,
+        arguments: arguments,
+        barrierColor: barrierColor,
+        barrierDismissible: barrierDismissible,
+        barrierLabel: barrierLabel,
+        curve: curve,
+        fullscreenDialog: fullscreenDialog,
+        maintainState: maintainState,
+        opaque: opaque,
+        builder: (_) => route,
+      );
+
+      if (flag == Flag.replacement) {
+        return Navigator.pushReplacement(
+          context,
+          result: result,
+          mRoute,
+        );
+      } else if (flag == Flag.clear) {
+        return Navigator.pushAndRemoveUntil(
+          context,
+          mRoute,
+          predicate ?? (route) => false,
+        );
+      } else {
+        return Navigator.pushNamed(context, "error");
+      }
+    } else {
+      return Navigator.pushNamed(context, "error");
+    }
   }
 
   static void terminate(BuildContext context, [Object? result]) {
-    AppNavigator.of(context).pop(result);
+    AppNavigator.of(context).back(result);
   }
 }
+
+typedef AppRouteBuilder<T> = Widget Function(BuildContext context);
 
 class AppRoute<T> extends PageRouteBuilder<T> {
   final String? name;
   final int animationTime;
   final int? animationReserveTime;
   final AnimType animationType;
-  final Map<String, dynamic>? arguments;
+  final Object? arguments;
   final Curve curve;
-  final Widget child;
+  final AppRouteBuilder<T> builder;
 
   AppRoute({
     super.allowSnapshotting,
@@ -191,18 +203,24 @@ class AppRoute<T> extends PageRouteBuilder<T> {
     super.fullscreenDialog,
     super.maintainState,
     super.opaque,
-    super.settings,
-    super.transitionsBuilder,
-    super.transitionDuration,
-    super.reverseTransitionDuration,
     this.name,
     this.animationTime = 300,
     this.animationReserveTime,
     this.arguments,
     this.animationType = AnimType.slideRight,
     this.curve = Curves.decelerate,
-    required this.child,
-  }) : super(pageBuilder: (context, a1, a2) => child);
+    required this.builder,
+  }) : super(
+          transitionDuration: Duration(milliseconds: animationTime),
+          reverseTransitionDuration: Duration(
+            milliseconds: animationReserveTime ?? animationTime,
+          ),
+          pageBuilder: (_, __, ___) => builder.call(_),
+          settings: RouteSettings(
+            name: name,
+            arguments: arguments,
+          ),
+        );
 
   @override
   RouteSettings get settings {

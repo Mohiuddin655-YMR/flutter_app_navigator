@@ -96,8 +96,8 @@ class AppNavigator {
     R? result,
   }) {
     if (route is String) {
-      arguments.putIfAbsent("__app_route_config__", () {
-        return AppRouteConfig(
+      Map<String, dynamic> arg = {
+        "__app_route_config__": AppRouteConfig(
           allowSnapshotting: allowSnapshotting,
           animationCurve: animationCurve,
           animationTime: animationTime,
@@ -109,28 +109,32 @@ class AppNavigator {
           fullscreenDialog: fullscreenDialog,
           maintainState: maintainState,
           opaque: opaque,
-        );
-      });
+        ),
+      };
+
+      if (arguments.isNotEmpty) {
+        arg.addAll(arguments);
+      }
 
       if (flag == Flag.replacement) {
         return Navigator.pushReplacementNamed(
           context,
           route,
           result: result,
-          arguments: arguments,
+          arguments: arg,
         );
       } else if (flag == Flag.clear) {
         return Navigator.pushNamedAndRemoveUntil(
           context,
           route,
           predicate ?? (value) => false,
-          arguments: arguments,
+          arguments: arg,
         );
       } else {
         return Navigator.pushNamed(
           context,
           route,
-          arguments: arguments,
+          arguments: arg,
         );
       }
     } else if (route is Widget) {

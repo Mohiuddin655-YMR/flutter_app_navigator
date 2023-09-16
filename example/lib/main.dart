@@ -88,9 +88,9 @@ class _Page1State extends State<Page1> {
                 result = await AppNavigator.load(
                   context,
                   "page_2",
-                  arguments: {
-                    "data": "Hi, I'm from Home...!",
-                  },
+                  // arguments: {
+                  //   "data": "Hi, I'm from Home...!",
+                  // },
                   animationType: AnimationType.zoom,
                 );
                 setState(() {});

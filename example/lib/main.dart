@@ -24,10 +24,11 @@ class AppRouter extends AppRouteGenerator {
 
   static AppRouter get I => const AppRouter._();
 
+  /// OPTIONAL
   @override
   AppRouteConfig get config {
     return const AppRouteConfig(
-      animationTime: 500,
+      animationTime: 300,
       animationType: AnimationType.slideRight,
     );
   }
@@ -90,6 +91,7 @@ class _Page1State extends State<Page1> {
                   arguments: {
                     "data": "Hi, I'm from Home...!",
                   },
+                  animationType: AnimationType.zoom,
                 );
                 setState(() {});
               },

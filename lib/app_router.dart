@@ -186,9 +186,9 @@ class AppRoute<T> extends PageRouteBuilder<T> {
           fullscreenDialog: fullscreenDialog ?? false,
           opaque: opaque ?? true,
           maintainState: maintainState ?? true,
-          transitionDuration: Duration(milliseconds: animationTime ?? 500),
+          transitionDuration: Duration(milliseconds: animationTime ?? 300),
           reverseTransitionDuration: Duration(
-            milliseconds: animationReserveTime ?? animationTime ?? 500,
+            milliseconds: animationReserveTime ?? animationTime ?? 300,
           ),
           pageBuilder: (_, __, ___) => builder.call(_),
           settings: RouteSettings(

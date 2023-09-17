@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app_navigator/app_navigator.dart';
+import 'package:flutter_app_navigator/go_route.dart';
+import 'package:flutter_app_navigator/navigate.dart';
+import 'package:flutter_app_navigator/route.dart';
 
 void main() => runApp(const Application());
 
@@ -10,24 +12,32 @@ class Application extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // return MaterialApp(
+    //   debugShowCheckedModeBanner: false,
+    //   title: 'App Navigator',
+    //   initialRoute: "page_1",
+    //   onGenerateRoute: AppRouter.I.generate,
+    // );
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Custom Page Transitions App',
-      initialRoute: "page_1",
-      onGenerateRoute: AppRouter.I.generate,
+      title: 'App Navigator',
+      routerConfig: AppGoRouter.I.config,
+      routerDelegate: AppGoRouter.I.config.routerDelegate,
+      routeInformationParser: AppGoRouter.I.config.routeInformationParser,
+      routeInformationProvider: AppGoRouter.I.config.routeInformationProvider,
     );
   }
 }
 
-class AppRouter extends AppRouteGenerator {
+class AppRouter extends RouteGenerator {
   const AppRouter._();
 
   static AppRouter get I => const AppRouter._();
 
   /// OPTIONAL
   @override
-  AppRouteConfig get config {
-    return const AppRouteConfig(
+  RouteConfig get config {
+    return const RouteConfig(
       animationTime: 300,
       animationType: AnimationType.slideRight,
     );
@@ -52,6 +62,39 @@ class AppRouter extends AppRouteGenerator {
     return Page2(
       data: data.get("data"),
     );
+  }
+}
+
+class AppGoRouter extends GoRouteGenerator {
+  const AppGoRouter._({
+    super.initialData,
+    super.initialPath,
+  });
+
+  static AppGoRouter get I {
+    return const AppGoRouter._(
+      initialData: null,
+      initialPath: "/",
+    );
+  }
+
+  @override
+  List<GoRouteConfig> routes() {
+    return [
+      GoRouteConfig(
+        path: "/page_2",
+        builder: (context, state) {
+          return const Page2(
+            data: "Hi",
+          );
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget onDefault(BuildContext context, Object? state) {
+    return const Page1();
   }
 }
 
@@ -85,13 +128,12 @@ class _Page1State extends State<Page1> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () async {
-                result = await AppNavigator.load(
-                  context,
-                  "page_2",
+                result = await AppNavigator.of(context).go(
+                  "/page_2",
                   // arguments: {
                   //   "data": "Hi, I'm from Home...!",
                   // },
-                  animationType: AnimationType.zoom,
+                  //animationType: AnimationType.zoom,
                 );
                 setState(() {});
               },
@@ -130,10 +172,7 @@ class Page2 extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                AppNavigator.terminate(
-                  context,
-                  result: "Hey, I'm back...!",
-                );
+                AppNavigator.of(context).goBack("Hey, I'm back...!");
               },
               child: const Text('Go Back'),
             ),

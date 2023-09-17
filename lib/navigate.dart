@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-part 'app_router.dart';
+import 'route.dart';
 
 extension AppNavigatorExtension on GoRouterState {
   String getPath(String name) => pathParameters[name] ?? "";
@@ -19,14 +19,14 @@ class AppNavigator {
 
   factory AppNavigator.of(BuildContext context) => AppNavigator._(context);
 
-  void go(
+  Future<T?> go<T extends Object>(
     String route, {
     Object? extra,
     String path = "",
     Map<String, dynamic> queryParams = const <String, dynamic>{},
-  }) {
-    if (path.isNotEmpty || queryParams.isNotEmpty) {
-      if (kIsWeb) {
+  }) async {
+    if (kIsWeb) {
+      if (path.isNotEmpty || queryParams.isNotEmpty) {
         context.goNamed(
           route,
           extra: extra,
@@ -34,20 +34,46 @@ class AppNavigator {
           queryParameters: queryParams,
         );
       } else {
-        context.pushNamed(
+        context.go(route, extra: extra);
+      }
+      return null;
+    } else {
+      if (path.isNotEmpty || queryParams.isNotEmpty) {
+        return context.pushNamed(
           route,
           extra: extra,
           pathParameters: {"name": path},
           queryParameters: queryParams,
         );
-      }
-    } else {
-      if (kIsWeb) {
-        context.go(route, extra: extra);
       } else {
-        context.push(route, extra: extra);
+        return context.push(route, extra: extra);
       }
     }
+    // if (path.isNotEmpty || queryParams.isNotEmpty) {
+    //   if (kIsWeb) {
+    //     context.goNamed(
+    //       route,
+    //       extra: extra,
+    //       pathParameters: {"name": path},
+    //       queryParameters: queryParams,
+    //     );
+    //     return null;
+    //   } else {
+    //     return context.pushNamed(
+    //       route,
+    //       extra: extra,
+    //       pathParameters: {"name": path},
+    //       queryParameters: queryParams,
+    //     );
+    //   }
+    // } else {
+    //   if (kIsWeb) {
+    //     context.go(route, extra: extra);
+    //     return null;
+    //   } else {
+    //     return context.push(route, extra: extra);
+    //   }
+    // }
   }
 
   void goHome(
@@ -73,7 +99,11 @@ class AppNavigator {
   }
 
   void goBack([Object? result]) {
-    context.pop(result);
+    if (kIsWeb){
+      context.canPop();
+    } else {
+      context.pop(result);
+    }
   }
 
   Future<T?> push<T extends Object?, R extends Object?>(
@@ -97,7 +127,7 @@ class AppNavigator {
   }) {
     if (route is String) {
       Map<String, dynamic> arg = {
-        "__app_route_config__": AppRouteConfig(
+        "__app_route_config__": RouteConfig(
           allowSnapshotting: allowSnapshotting,
           animationCurve: animationCurve,
           animationTime: animationTime,

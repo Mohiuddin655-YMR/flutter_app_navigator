@@ -1,8 +1,10 @@
-part of 'app_navigator.dart';
+import 'package:flutter/material.dart';
+
+import 'error.dart';
 
 typedef RouteBuilder = Widget Function(BuildContext context, Object? data);
 
-extension AppRouteExtenstion on Object? {
+extension RouteExtenstion on Object? {
   T call<T>(String key, T secondary) {
     var root = this;
     if (root is Map<String, dynamic>) {
@@ -24,10 +26,10 @@ extension AppRouteExtenstion on Object? {
   T? get<T>(String key, [T? secondary]) => call(key, secondary);
 }
 
-abstract class AppRouteGenerator {
-  const AppRouteGenerator();
+abstract class RouteGenerator {
+  const RouteGenerator();
 
-  AppRouteConfig get config => const AppRouteConfig();
+  RouteConfig get config => const RouteConfig();
 
   Map<String, RouteBuilder> routes();
 
@@ -112,7 +114,7 @@ abstract class AppRouteGenerator {
   }
 }
 
-class AppRouteConfig {
+class RouteConfig {
   final bool? allowSnapshotting;
   final Curve? animationCurve;
   final int? animationTime;
@@ -125,7 +127,7 @@ class AppRouteConfig {
   final bool? maintainState;
   final bool? opaque;
 
-  const AppRouteConfig({
+  const RouteConfig({
     this.allowSnapshotting,
     this.animationCurve,
     this.animationTime,
@@ -139,8 +141,8 @@ class AppRouteConfig {
     this.opaque,
   });
 
-  AppRouteConfig adjust(AppRouteConfig config) {
-    return AppRouteConfig(
+  RouteConfig adjust(RouteConfig config) {
+    return RouteConfig(
       allowSnapshotting: config.allowSnapshotting ?? allowSnapshotting,
       animationCurve: config.animationCurve ?? animationCurve,
       animationTime: config.animationTime ?? animationTime,
@@ -433,29 +435,4 @@ enum AnimationType {
   windmill,
   zoom,
   zoomWithFade;
-}
-
-class ErrorScreen extends StatelessWidget {
-  const ErrorScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Error"),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Text(
-            "No screen found!",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.withOpacity(0.5),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

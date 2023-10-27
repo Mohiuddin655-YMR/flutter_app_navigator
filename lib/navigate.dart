@@ -49,31 +49,6 @@ class AppNavigator {
         return context.push(route, extra: extra);
       }
     }
-    // if (path.isNotEmpty || queryParams.isNotEmpty) {
-    //   if (kIsWeb) {
-    //     context.goNamed(
-    //       route,
-    //       extra: extra,
-    //       pathParameters: {"name": path},
-    //       queryParameters: queryParams,
-    //     );
-    //     return null;
-    //   } else {
-    //     return context.pushNamed(
-    //       route,
-    //       extra: extra,
-    //       pathParameters: {"name": path},
-    //       queryParameters: queryParams,
-    //     );
-    //   }
-    // } else {
-    //   if (kIsWeb) {
-    //     context.go(route, extra: extra);
-    //     return null;
-    //   } else {
-    //     return context.push(route, extra: extra);
-    //   }
-    // }
   }
 
   void goHome(
@@ -99,11 +74,7 @@ class AppNavigator {
   }
 
   void goBack([Object? result]) {
-    if (kIsWeb){
-      context.canPop();
-    } else {
-      context.pop(result);
-    }
+    context.pop(result);
   }
 
   Future<T?> push<T extends Object?, R extends Object?>(

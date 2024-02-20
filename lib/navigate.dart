@@ -2,9 +2,12 @@ library app_navigator;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_navigator/error.dart';
 import 'package:go_router/go_router.dart';
 
 import 'route.dart';
+
+part 'route_info.dart';
 
 extension AppNavigatorExtension on GoRouterState {
   String getPath(String name) => pathParameters[name] ?? "";
@@ -78,7 +81,8 @@ class AppNavigator {
   }
 
   Future<T?> push<T extends Object?, R extends Object?>(
-    dynamic route, {
+    RouteInfo info, {
+    String? childRoute,
     bool? allowSnapshotting,
     Curve? animationCurve,
     int? animationTime,
@@ -96,7 +100,9 @@ class AppNavigator {
     RoutePredicate? predicate,
     R? result,
   }) {
-    if (route is String) {
+    if (info is _NamedRoute) {
+      final base = info.base;
+      final child = info.child;
       Map<String, dynamic> arg = {
         "__app_route_config__": RouteConfig(
           allowSnapshotting: allowSnapshotting,
@@ -110,9 +116,11 @@ class AppNavigator {
           fullscreenDialog: fullscreenDialog,
           maintainState: maintainState,
           opaque: opaque,
+
         ),
       };
 
+      arg.putIfAbsent("screen", () => child);
       if (arguments.isNotEmpty) {
         arg.addAll(arguments);
       }
@@ -120,25 +128,25 @@ class AppNavigator {
       if (flag == Flag.replacement) {
         return Navigator.pushReplacementNamed(
           context,
-          route,
+          base,
           result: result,
           arguments: arg,
         );
       } else if (flag == Flag.clear) {
         return Navigator.pushNamedAndRemoveUntil(
           context,
-          route,
+          base,
           predicate ?? (value) => false,
           arguments: arg,
         );
       } else {
         return Navigator.pushNamed(
           context,
-          route,
+          base,
           arguments: arg,
         );
       }
-    } else if (route is Widget) {
+    } else if (info is _WidgetRoute) {
       AppRoute<T> mRoute = AppRoute<T>(
         name: name,
         allowSnapshotting: allowSnapshotting ?? true,
@@ -153,7 +161,15 @@ class AppNavigator {
         fullscreenDialog: fullscreenDialog ?? false,
         maintainState: maintainState ?? true,
         opaque: opaque ?? true,
-        builder: (_) => route,
+        builder: (_) {
+          if (info.builder != null) {
+            return info.builder!(_);
+          } else if (info.child != null) {
+            return info.child!;
+          } else {
+            return const ErrorScreen();
+          }
+        },
       );
 
       if (flag == Flag.replacement) {

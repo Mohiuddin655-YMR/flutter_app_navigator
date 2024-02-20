@@ -126,6 +126,7 @@ class RouteConfig {
   final bool? fullscreenDialog;
   final bool? maintainState;
   final bool? opaque;
+  final String keyAsChildScreen;
 
   const RouteConfig({
     this.allowSnapshotting,
@@ -139,6 +140,7 @@ class RouteConfig {
     this.fullscreenDialog,
     this.maintainState,
     this.opaque,
+    this.keyAsChildScreen = "screen",
   });
 
   RouteConfig adjust(RouteConfig config) {
